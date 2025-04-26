@@ -1,21 +1,42 @@
-import "./style.css";
 import { Renderer } from "./renderers/simple-face";
+import "./style.css";
 
 import {
+  createAngryDecorator,
   createBubbleDecorator,
   createHeartDecorator,
-  createAngryDecorator,
   createPaleDecorator,
   createSweatDecorator,
 } from "./renderers/decorator.js";
-import { defaultFaceContext } from "./renderers/renderer-base.js";
 import type {
   FaceContext,
   FaceDecorator,
   RendererBase,
 } from "./renderers/renderer-base.js";
+import { defaultFaceContext } from "./renderers/renderer-base.js";
+import { createLipSyncModifier } from './renderers/modifier'
 
-// ...既存コード...
+// マイク入力のセットアップ
+async function setupMicLipSync(renderer: RendererBase) {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+  const audioCtx = new AudioContext()
+  const micSource = audioCtx.createMediaStreamSource(stream)
+
+  const bufferLength = 1024
+  const lipSyncModifier = createLipSyncModifier({ bufferLength, gain: 1.5, smoothing: 0. })
+  renderer.filters.push(lipSyncModifier)
+
+  // ScriptProcessorNodeでマイク音声を取得
+  const processor = audioCtx.createScriptProcessor(bufferLength, 1, 1)
+  micSource.connect(processor)
+  processor.connect(audioCtx.destination)
+
+  processor.onaudioprocess = (event) => {
+    const input = event.inputBuffer.getChannelData(0)
+    // 新しい音声データが来たタイミングでupdateを呼ぶ
+    lipSyncModifier.update?.(input)
+  }
+}
 
 // エモーションとデコレーターの定義
 const EMOTIONS = [
@@ -92,6 +113,7 @@ document.body.appendChild(canvas);
 
 const renderer = new Renderer({ canvas });
 const faceContext = structuredClone(defaultFaceContext) as FaceContext;
+setupMicLipSync(renderer);
 
 // キーイベントでエモーションを切り替え
 window.addEventListener("keydown", (e) => {

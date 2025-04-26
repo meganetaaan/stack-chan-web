@@ -16,6 +16,43 @@ function linearInLinearOut(fraction: number): number {
   return fraction * 2 - 1
 }
 
+export const createLipSyncModifier: FaceModifierFactory<{
+  bufferLength: number
+  smoothing?: number
+  gain?: number
+}> = ({ bufferLength = 1024, smoothing = 0.7, gain = 1.0 }) => {
+  let index = 0
+  const ringBuffer = new Float32Array(bufferLength)
+  let open = 0
+
+  // 新しい音声データが来たときに呼ぶ
+  const update = (audioBuffer: unknown) => {
+    if (!(audioBuffer instanceof Float32Array)) {
+      throw new Error('audioBuffer must be a Float32Array')
+    }
+
+    for (let i = 0; i < audioBuffer.length; i++) {
+      ringBuffer[index] = audioBuffer[i]
+      index = (index + 1) % bufferLength
+    }
+    let sumSq = 0
+    for (let i = 0; i < bufferLength; i++) {
+      sumSq += ringBuffer[i] * ringBuffer[i]
+    }
+    const rms = Math.sqrt(sumSq / bufferLength)
+    const targetOpen = Math.min(1, Math.max(0, rms * 4 * gain))
+    open = open * smoothing + targetOpen * (1 - smoothing)
+  }
+
+  const modifier = (_tickMillis: number, face: FaceContext) => {
+    face.mouth.open = open
+    return face
+  }
+  modifier.update = update
+  modifier.cleanup = () => {}
+  return modifier
+}
+
 export const createBlinkModifier: FaceModifierFactory<{
   openMin: number
   openMax: number
