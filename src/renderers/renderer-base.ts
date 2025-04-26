@@ -206,11 +206,7 @@ export class RendererBase {
     this.lastUpdateTime = Date.now();
     this.clear()
   }
-  update(_interval = INTERVAL, faceContext: Readonly<FaceContext> = defaultFaceContext): void {
-    // get time delta from last update
-    const now = Date.now()
-    const interval = now - this.lastUpdateTime
-    this.lastUpdateTime = now
+  update(interval = INTERVAL, faceContext: Readonly<FaceContext> = defaultFaceContext): void {
     copyFaceContext(faceContext, this.currentContext)
     for (const filter of this.filters) {
       filter(interval, this.currentContext)

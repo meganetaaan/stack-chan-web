@@ -1,6 +1,6 @@
 import type { FaceDecoratorFactory } from './renderer-base'
-import { Outline, CanvasPath } from './outline'
-import { Poco } from './poco'
+import { Outline, type CanvasPath } from './outline'
+import type { Poco } from './poco'
 
 // ユーティリティ: 矩形パス生成
 function createRoundRectPath(x: number, y: number, w: number, h: number, r: number): CanvasPath {
@@ -230,7 +230,7 @@ export const createPaleDecorator: FaceDecoratorFactory<{
     const path = new Outline.CanvasPath()
     const fraction = Math.min(time / interval, 1)
     // Math.exponentialEaseOutは未定義なので、線形補間に変更
-    const offsetY = (1 - Math.pow(2, -10 * fraction)) * moveY
+    const offsetY = (1 - 2 ** (-10 * fraction)) * moveY
     path.moveTo(15, 5)
     path.lineTo(15, flip ? 25 : 35)
     path.moveTo(25, 5)
@@ -274,7 +274,7 @@ export const createSweatDecorator: FaceDecoratorFactory<{
     const path = new Outline.CanvasPath()
     const fraction = Math.min(time / interval, 1)
     // Math.exponentialEaseOutは未定義なので、線形補間に変更
-    const offsetY = (1 - Math.pow(2, -10 * fraction)) * moveY
+    const offsetY = (1 - 2 ** (-10 * fraction)) * moveY
     path.moveTo(20, 30)
     path.bezierCurveTo(30, 30, 30, 15, 20, 0)
     path.bezierCurveTo(10, 15, 10, 30, 20, 30)
