@@ -60,8 +60,8 @@ export class PocoCanvasAdaptor implements Poco {
     color: string,
     alpha: number,
     path: Path2D | { toPath2D: () => Path2D },
-    x: number = 0,
-    y: number = 0
+    x = 0,
+    y = 0
   ): void {
     this.#context.save()
     this.#context.globalAlpha = alpha / 255
