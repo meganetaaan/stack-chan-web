@@ -19,7 +19,11 @@ export interface Poco {
 export class PocoCanvasAdaptor implements Poco {
   #context: CanvasRenderingContext2D
   constructor(canvas: HTMLCanvasElement) {
-    this.#context = canvas.getContext('2d')!
+    const context = canvas.getContext('2d')
+    if (!context) {
+      throw new Error('Failed to get 2D context')
+    }
+    this.#context = context;
   }
   get width(): number {
     return this.#context.canvas.width
