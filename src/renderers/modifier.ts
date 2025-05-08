@@ -8,14 +8,6 @@ function linearInEaseOut(fraction: number): number {
   return ((fraction - 0.25) ** 2 * 16) / 9
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function linearInLinearOut(fraction: number): number {
-  if (fraction < 0.5) {
-    return 1 - fraction * 2
-  }
-  return fraction * 2 - 1
-}
-
 export const createLipSyncModifier: FaceModifierFactory<{
   bufferLength: number
   smoothing?: number
