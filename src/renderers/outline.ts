@@ -13,18 +13,28 @@ export class Outline {
 
   // fill/strokeはCommodetto OutlineのAPIを模倣
   static fill(path: CanvasPath): Outline {
-    return new Outline(path)
+    return new Outline(path, 'fill')
   }
   static stroke(path: CanvasPath, weight = 1): Outline {
-    return new Outline(path)
+    return new Outline(path, 'stroke', weight)
   }
 
   #path: CanvasPath
-  constructor(path: CanvasPath) {
+  #mode: 'fill' | 'stroke'
+  #weight: number
+  constructor(path: CanvasPath, mode: 'fill' | 'stroke' = 'fill', weight = 1) {
     this.#path = path
+    this.#mode = mode
+    this.#weight = weight
   }
   toPath2D(): Path2D {
     return this.#path
+  }
+  get mode() {
+    return this.#mode
+  }
+  get weight() {
+    return this.#weight
   }
   // translate等はダミー実装（必要に応じて拡張）
   translate(_x: number, _y: number): Outline {

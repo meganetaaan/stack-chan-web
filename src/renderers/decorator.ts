@@ -96,7 +96,6 @@ export const createBubbleDecorator: FaceDecoratorFactory<{
       poco.end()
       return
     }
-    const path = new Outline.CanvasPath()
     count = (count + tick) % 1000
     for (const b of bubbles) {
       const upwardSpeed = 1 - b.r / 12
@@ -110,9 +109,11 @@ export const createBubbleDecorator: FaceDecoratorFactory<{
         b.vx = -3
       }
       b.r = Math.max(3, Math.min(12, b.r + 0.2 * (Math.random() - 0.5)))
-      path.arc(x + b.x, y + height - b.y, b.r, 0, 2 * Math.PI)
+      // 各バブルごとに個別のパスを作成して描画
+      const bubblePath = new Outline.CanvasPath()
+      bubblePath.arc(x + b.x, y + height - b.y, b.r, 0, 2 * Math.PI)
+      poco.blendOutline(fg, 255, Outline.stroke(bubblePath, 2), 0, 0)
     }
-    poco.blendOutline(fg, 255, Outline.stroke(path, 2), 0, 0)
     poco.end()
   }
 }
@@ -182,24 +183,26 @@ export const createAngryDecorator: FaceDecoratorFactory<{
     }
     fraction += (2 * Math.PI) / 100
     const scale = Math.abs(Math.sin(fraction)) / 4 + 0.75
-    const path = new Outline.CanvasPath()
-    path.moveTo(15, 5)
-    path.quadraticCurveTo(20, 20, 5, 15)
-    path.moveTo(25, 5)
-    path.quadraticCurveTo(20, 20, 35, 15)
-    path.moveTo(5, 25)
-    path.quadraticCurveTo(20, 20, 15, 35)
-    path.moveTo(25, 35)
-    path.quadraticCurveTo(20, 20, 35, 25)
-    poco.blendOutline(
-      fg,
-      255,
-      Outline.stroke(path, 2)
-        .scale(scale * xScale, scale * yScale)
-        .rotate(angle),
-      x,
-      y,
-    )
+    // 4本の線を個別のパスで描画
+    const lines = [
+      (path: CanvasPath) => { path.moveTo(15, 5); path.quadraticCurveTo(20, 20, 5, 15) },
+      (path: CanvasPath) => { path.moveTo(25, 5); path.quadraticCurveTo(20, 20, 35, 15) },
+      (path: CanvasPath) => { path.moveTo(5, 25); path.quadraticCurveTo(20, 20, 15, 35) },
+      (path: CanvasPath) => { path.moveTo(25, 35); path.quadraticCurveTo(20, 20, 35, 25) },
+    ]
+    for (const drawLine of lines) {
+      const path = new Outline.CanvasPath()
+      drawLine(path)
+      poco.blendOutline(
+        fg,
+        255,
+        Outline.stroke(path, 2)
+          .scale(scale * xScale, scale * yScale)
+          .rotate(angle),
+        x,
+        y,
+      )
+    }
     poco.end()
   }
 }

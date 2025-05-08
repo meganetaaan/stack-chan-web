@@ -7,7 +7,7 @@ export interface Poco {
   blendOutline(
     color: string,
     alpha: number,
-    path: Path2D | { toPath2D: () => Path2D },
+    path: Path2D | { toPath2D: () => Path2D, mode?: string, weight?: number },
     x?: number,
     y?: number
   ): void
@@ -59,7 +59,7 @@ export class PocoCanvasAdaptor implements Poco {
   blendOutline(
     color: string,
     alpha: number,
-    path: Path2D | { toPath2D: () => Path2D },
+    path: Path2D | { toPath2D: () => Path2D, mode?: string, weight?: number },
     x = 0,
     y = 0
   ): void {
@@ -67,15 +67,29 @@ export class PocoCanvasAdaptor implements Poco {
     this.#context.globalAlpha = alpha / 255
     this.#context.fillStyle = color
     let p: Path2D
+    let mode: 'fill' | 'stroke' = 'fill'
+    let weight = 1
     if (path instanceof Path2D) {
       p = path
     } else if (typeof path.toPath2D === 'function') {
       p = path.toPath2D()
+      if ('mode' in path && (path.mode === 'stroke' || path.mode === 'fill')) {
+        mode = path.mode
+      }
+      if ('weight' in path && typeof path.weight === 'number') {
+        weight = path.weight
+      }
     } else {
       p = new Path2D()
     }
     this.#context.translate(x, y)
-    this.#context.fill(p)
+    if (mode === 'stroke') {
+      this.#context.strokeStyle = color
+      this.#context.lineWidth = weight
+      this.#context.stroke(p)
+    } else {
+      this.#context.fill(p)
+    }
     this.#context.restore()
   }
   makeColor(r: number, g: number, b: number): string {
